@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+  <html lang="ko">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>측정소 리스트</title>
+    <script src="http://map.vworld.kr/js/vworldMapInit.js.do?version=2.0&apiKey=C97E236D-BB7D-3E29-AB70-A611F8CBA155"></script>
+  </head>
+  <body>
+    <h1>측정소 리스트</h1>
+    <a href="/insert">측정소 추가</a>
+    <input type="text" id="searchInput" style="position: absolute; left: 13.5%;">
+    <input type="button" value="검색" style="position: absolute; left: 23.5%;" onclick="search()">
+    <hr/>
+    <table border="1" id="dataTable">
+      <tr>
+        <th>id</th>
+        <th>위도</th>
+        <th>경도</th>
+        <th>측정소코드</th>
+        <th>측정소명</th>
+        <th>-</th>
+        <th>-</th>
+      </tr>
+      <% data.forEach((item, index) => { %>
+      <tr>
+        <td data-lat="<%= item.coor_lat %>" data-lng="<%= item.coor_lon %>" data-cd="<%= item.site_cd %>" data-nm="<%= item.site_nm %>" onclick="showMarkerOnMap(this);"><a><%= item.id %></a></td>
+        <td><%= item.coor_lat %></td>
+        <td><%= item.coor_lon %></td>
+        <td><%= item.site_cd %></td>
+        <td><%= item.site_nm %></td>
+        <td><a href="/edit/<%= item.id %>">수정</a></td>
+        <td><a href="/delete/<%= item.id%>" onclick="return confirmDelete();">삭제</a></td>
+      </tr>
+      <% }); %>
+    </table>
+    <div id="map" style="width: 363px; height: 363px;"></div>
+    <input type="button" value="마커 제거" onclick="removeMarkerOnMap();">
+    <input type="button" value="전체 마커 표시" onclick="showAllMarkerOnMap(this);">
+    <input type="button" value="전체 마커 제거" onclick="removeAllMarkerOnMap();">
+    <script>
+      const confirmDelete = () => {
+        return confirm("정말로 삭제하시겠습니까?");
+      };
+
+      var markerLayer;
+      var vmap;
+      var selectMarker;
+
+      // VWorld 지도 옵션
+      vw.ol3.MapOptions = {
+        basemapType: vw.ol3.BasemapType.GRAPHIC,
+        controlDensity: vw.ol3.DensityType.EMPTY,
+        interactionDensity: vw.ol3.DensityType.BASIC,
+        controlsAutoArrange: true,
+        homePosition: vw.ol3.CameraPosition,
+        initPosition: vw.ol3.CameraPosition
+      };
+
+      // VWorld 지도 인스턴스 생성
+      vmap = new vw.ol3.Map("map", vw.ol3.MapOptions);
+      // 마커를 표시할 레이어 생성
+      markerLayer = new vw.ol3.layer.Marker(vmap);
+
+      // 지도에서 마우스 포인터 이동시 발생하는 이벤트 처리
+      vmap.on('pointermove', e => {
+        var feature = vmap.forEachFeatureAtPixel(e.pixel, (feature, layer) => {
+          if (layer != null && layer.className == 'vw.ol3.layer.Marker') {
+            selectMarker = feature;
+          } else {
+            return false;
+          };
+        });
+      });
+
+      const removeMarkerOnMap = () => {
+        if (selectMarker) {
+          markerLayer.removeMarker(selectMarker);
+          selectMarker = null;
+        } else {
+          alert("선택된 마커가 없습니다.");
+        };
+      };
+
+      const removeAllMarkerOnMap = () => {
+        markerLayer.removeAllMarker(selectMarker);
+        selectMarker = null;
+      };
+
+      const showMarkerOnMap = element => {
+        var lat = parseFloat(element.getAttribute("data-lat"));
+        var lng = parseFloat(element.getAttribute("data-lng"));
+        var cd = String(element.getAttribute("data-cd"));
+        var nm = String(element.getAttribute("data-nm"));
+
+        vw.ol3.markerOption = {
+          x: lng,
+          y: lat,
+          epsg: "EPSG:4326",
+          title : nm,
+          contents : '위도: ' + lat +  ' 경도: ' + lng + ' 측정소코드: ' + cd,
+          iconUrl: "https://map.vworld.kr/images/ol3/marker_blue.png"
+        };
+        markerLayer.addMarker(vw.ol3.markerOption);
+
+        vmap.addLayer(markerLayer);
+      };
+
+      const showAllMarkerOnMap = () => {
+        const table = document.getElementById("dataTable");
+        const rows = table.getElementsByTagName("tr");
+
+        for (let i = 0; i < rows.length; i++) {
+          const td = rows[i].getElementsByTagName("td")[0];
+          if (td) {
+            showMarkerOnMap(td);
+          };
+        };
+      };
+
+      const search = () => {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("searchInput");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("dataTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+          var cells = tr[i].getElementsByTagName("td");
+          var found = false;
+
+          for (var j = 0; j < cells.length; j++) {
+            td = cells[j];
+            if (td) {
+              txtValue = td.textContent || td.innerText;
+              // 검색어와 일치하는 항목이 있으면 행을 표시하고, 없으면 행을 숨김
+              if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                found = true;
+                break;
+              };
+            };
+          };
+
+          if (found) {
+            tr[i].style.display = "";
+          } else {
+            tr[i].style.display = "none";
+          };
+        };
+      };
+    </script>
+  </body>
+</html>

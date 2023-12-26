@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>측정소 추가</title>
+  </head>
+  <body>
+    <h1>측정소 추가</h1>
+    <hr/>
+    <form method="post">
+      <fieldset>
+        <legend>측정소 등록</legend>
+        <table>
+          <tr>
+            <td><label>위도</label></td>
+            <td><input type="text" name="coor_lat" /></td>
+          </tr>
+          <tr>
+            <td><label>경도</label></td>
+            <td><input type="text" name="coor_lon" /></td>
+          </tr>
+          <tr>
+            <td><label>측정소코드</label></td>
+            <td><input type="text" name="site_cd" /></td>
+          </tr>
+          <tr>
+            <td><label>측정소명</label></td>
+            <td><input type="text" name="site_nm" /></td>
+          </tr>
+        </table>
+        <input type="submit" value="등록">
+      </fieldset>
+    </form>
+  </body>
+</html>
